@@ -1,16 +1,17 @@
 package initializers
 
 import (
-	"github.com/jinzhu/gorm"
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
-func Connect() {
+func DBConnect() {
 	var err error
-	dsn := ""
+	dsn := os.Getenv("DB_URL")
 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
