@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"golang_gin_jwt_auth/handlers"
 	"golang_gin_jwt_auth/initializers"
+	"golang_gin_jwt_auth/models"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,8 @@ import (
 func init() {
 	initializers.LoadEnv()
 	initializers.DBConnect()
-	fmt.Println(initializers.DB.Config)
+	//migrate tables
+	initializers.DB.AutoMigrate(&models.User{})
 }
 
 func main() {

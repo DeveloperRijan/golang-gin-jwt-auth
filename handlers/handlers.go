@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"golang_gin_jwt_auth/helpers"
+	"golang_gin_jwt_auth/initializers"
 	"golang_gin_jwt_auth/models"
 
 	"github.com/gin-gonic/gin"
@@ -43,6 +44,17 @@ func LoginHandler(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{
 			"success": false,
 			"message": "Password is required",
+		})
+		return
+	}
+
+	//Find the user
+	user := initializers.DB.First(&u, "email = ?", fmt.Sprintf("%s", u.Email))
+	fmt.Println(user)
+	if user.Error != nil {
+		ctx.JSON(404, gin.H{
+			"success": false,
+			"message": fmt.Sprintf("Error! %s", user.Error),
 		})
 		return
 	}
