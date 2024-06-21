@@ -72,7 +72,7 @@ func LoginHandler(ctx *gin.Context) {
 	jwt_key = os.Getenv("JWT_KEY")
 	jwt_token = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": u.Email,
-		"time":  time.Now().Local().String(),
+		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})
 	new_jwt_token, err = jwt_token.SignedString([]byte(jwt_key))
 
