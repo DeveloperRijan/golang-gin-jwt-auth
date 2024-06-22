@@ -135,6 +135,23 @@ func SignupHandler(ctx *gin.Context) {
 		return
 	}
 
+	userExists := initializers.DB.First(&body, "email = ?", fmt.Sprintf("%s", body.Email))
+	if userExists.Error != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "An error occured to check record!",
+		})
+		return
+	}
+
+	if userExists.RowsAffected > 0 {
+		ctx.JSON(http.StatusConflict, gin.H{
+			"success": false,
+			"message": "Email already exists",
+		})
+		return
+	}
+
 	newUser := initializers.DB.Create(&body)
 	if newUser.Error != nil {
 		println("Singup failed:" + newUser.Error.Error())
