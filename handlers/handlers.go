@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // handlers
@@ -136,13 +137,6 @@ func SignupHandler(ctx *gin.Context) {
 	}
 
 	userExists := initializers.DB.First(&body, "email = ?", fmt.Sprintf("%s", body.Email))
-	if userExists.Error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "An error occured to check record!",
-		})
-		return
-	}
 
 	if userExists.RowsAffected > 0 {
 		ctx.JSON(http.StatusConflict, gin.H{
@@ -151,6 +145,21 @@ func SignupHandler(ctx *gin.Context) {
 		})
 		return
 	}
+
+	//has password
+	var (
+		hashError    error
+		hashPassword []byte
+	)
+	hashPassword, hashError = bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+	if hashError != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Password hash failed",
+		})
+		return
+	}
+	body.Password = string(hashPassword)
 
 	newUser := initializers.DB.Create(&body)
 	if newUser.Error != nil {
