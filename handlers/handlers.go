@@ -54,12 +54,23 @@ func LoginHandler(ctx *gin.Context) {
 	}
 
 	//Find the user
-	user := initializers.DB.First(&u, "email = ?", fmt.Sprintf("%s", u.Email))
+	var findUser models.User
+	user := initializers.DB.First(&findUser, "email = ?", fmt.Sprintf("%s", u.Email))
 	fmt.Println(user)
 	if user.Error != nil {
 		ctx.JSON(404, gin.H{
 			"success": false,
 			"message": fmt.Sprintf("Error! %s", user.Error),
+		})
+		return
+	}
+
+	//verify password hash
+	isHashValid := bcrypt.CompareHashAndPassword([]byte(findUser.Password), []byte(u.Password))
+	if isHashValid != nil {
+		ctx.JSON(404, gin.H{
+			"success": false,
+			"message": "Invalid account password!",
 		})
 		return
 	}
