@@ -5,6 +5,7 @@ import (
 	"golang_gin_jwt_auth/helpers"
 	"golang_gin_jwt_auth/initializers"
 	"golang_gin_jwt_auth/models"
+	"net/http"
 	"os"
 	"time"
 
@@ -54,13 +55,13 @@ func LoginHandler(ctx *gin.Context) {
 	//Find the user
 	user := initializers.DB.First(&u, "email = ?", fmt.Sprintf("%s", u.Email))
 	fmt.Println(user)
-	// if user.Error != nil {
-	// 	ctx.JSON(404, gin.H{
-	// 		"success": false,
-	// 		"message": fmt.Sprintf("Error! %s", user.Error),
-	// 	})
-	// 	return
-	// }
+	if user.Error != nil {
+		ctx.JSON(404, gin.H{
+			"success": false,
+			"message": fmt.Sprintf("Error! %s", user.Error),
+		})
+		return
+	}
 
 	//generate jwt
 	var (
@@ -87,7 +88,66 @@ func LoginHandler(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"success": true,
+		"message": "Login success",
 		"token":   new_jwt_token,
 	})
-	return
+}
+
+// signup
+func SignupHandler(ctx *gin.Context) {
+	body := models.User{
+		Name:     ctx.PostForm("name"),
+		Email:    ctx.PostForm("email"),
+		Password: ctx.PostForm("password"),
+	}
+
+	fmt.Printf("Ok, name: %s, email: %s", body.Name, body.Email)
+
+	if body.Name == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Name is required",
+		})
+		return
+	}
+
+	if body.Email == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Email is reuquired",
+		})
+		return
+	}
+
+	if !helpers.IsValidEmail(body.Email) {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": true,
+			"message": "Email is invalid",
+		})
+		return
+	}
+
+	if body.Password == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Password is required",
+		})
+		return
+	}
+
+	newUser := initializers.DB.Create(&body)
+	if newUser.Error != nil {
+		println("Singup failed:" + newUser.Error.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Singup failed, please try agian after sometimes!",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Singup success, please login!",
+	})
+
 }

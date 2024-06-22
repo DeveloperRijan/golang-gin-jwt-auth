@@ -21,6 +21,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/", handlers.HomePageHandler)
+	r.POST("/api/signup", handlers.SignupHandler)
 	r.POST("/api/login", handlers.LoginHandler)
 
 	r.Run(fmt.Sprintf(":%s", os.Getenv("PORT")))
